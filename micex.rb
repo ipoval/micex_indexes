@@ -15,7 +15,7 @@ require_relative './tickers'
 
 @url = {
   'yesterday' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=1&sorting.name=price-pchange&sorting.dir=desc&count=-1',
-  'today' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=5&sorting.name=price-pchange&sorting.dir=desc&count=-1&price-pchange.min=null&price-pchange.max=null',
+  'today' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=5&sorting.name=price-pchange&sorting.dir=asc&count=-1',
 }.fetch ENV['WHEN']
 
 def micex_run(ticker)
@@ -37,22 +37,24 @@ def micex_run(ticker)
 
       notifyme html
     else
-      print "%s: %-20s: %s %60s\n" % [Time.now.utc.ctime, ticker[:name], price_change, ticker[:url]]
+      print "%s: %s: %s %60s\n" % [Time.now.ctime, ticker[:name].ljust(20, '.'), price_change, ticker[:url]]
     end
   else
-    puts 'DID NOT FIND Price Match for %s' % ticker[:name]
+    puts 'no price for %s' % ticker[:name]
   end
 end
 
 loop do
-  @page = open(@url).read
-
-  TICKERS.each { |ticker| micex_run ticker }
-
-  print ("%60s\n" % "").tr(' ', '-')
-
-  sleep 15
-
+  begin
+    @page = open(@url).read
+    TICKERS.each { |ticker| micex_run ticker }
+    print ("%80s\n" % "").tr(' ', '-')
+    sleep 15
+  rescue
+    puts $!.message
+    puts $!.backtrace
+    sleep 15
+  end
 end
 
 __END__
