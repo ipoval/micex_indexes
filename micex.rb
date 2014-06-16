@@ -16,6 +16,7 @@ require_relative './tickers'
 module MicexFeed
   module_function
 
+  # TODO: add new url http://www.finam.ru/analysis/emitrating/?rating=0&type=1&market=1&period=5
   def url
     {
       'yesterday' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=1&sorting.name=price-pchange&sorting.dir=desc&count=-1',
