@@ -5,7 +5,7 @@
 # http://www.finam.ru/analysis/leaders/
 #
 # Start
-# WHEN=current|last_day ruby ./$0.rb
+# WHEN=today|yesterday ruby ./$0.rb
 #
 
 require 'json'
@@ -16,12 +16,26 @@ require_relative './tickers'
 module MicexFeed
   module_function
 
-  # TODO: add new url http://www.finam.ru/analysis/emitrating/?rating=0&type=1&market=1&period=5
   def url
     {
-      'yesterday' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=1&sorting.name=price-pchange&sorting.dir=desc&count=-1',
+      'yesterday' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&leadersmode=0&market=1&pitch=1&sorting.name=price-pchange&sorting.dir=asc&count=-1',
       'today'     => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=5&sorting.name=price-pchange&sorting.dir=asc&count=-1',
     }.fetch ENV['WHEN']
+  end
+end
+
+ConsoleView = Struct.new(:instrument_name, :price_diff, :instrument_url) do
+  def to_s
+    format "%s %s: %s %60s\n",
+      Time.now.strftime('%H:%m:%S').ljust(20, ' '),
+      instrument_name.ljust(40, '.'),
+      price_with_color,
+      instrument_url
+  end
+
+  def price_with_color
+    str = price_diff.to_f < 0 ? "\e[0;31m" : "\e[0;32m"
+    str.concat(price_diff).concat("\e[0m")
   end
 end
 
@@ -32,22 +46,22 @@ if $0 == __FILE__
     # @page.encode! Encoding::UTF_8, invalid: :replace, replace: ''
 
     page = @page.match(/#{ticker[:profile_id]}.+?(?=<\/tr)/).to_s
-    price_change_match = page.match(/<td class='price-pchange.*?'>([+-]?.+?)<\/td>/)
+    price_diff_match = page.match(/<td class='price-pchange.*?'>([+-]?.+?)<\/td>/)
 
-    if price_change_match
-      price_change = price_change_match[1]
-      price_change_int = price_change.to_i
+    if price_diff_match
+      price_diff = price_diff_match[1]
+      price_diff_int = price_diff.to_i
 
-      if price_change_int.abs >= ticker[:percentage]
-        html = sprintf "MICEX: %s / %d / PRICE CHANGE: \e[0;31m%s\e[0m / %s\n" % [ticker[:name], price_change_int, price_change, ticker[:url]]
+      if price_diff_int.abs >= ticker[:percentage]
+        html = sprintf "MICEX: %s / %d / PRICE CHANGE: \e[0;31m%s\e[0m / %s\n" % [ticker[:name], price_diff_int, price_diff, ticker[:url]]
 
-        puts ("\e[0;31m%40s\e[0m" % ["ALARM #{Time.now}"]).tr(" ", "=")
+        puts ("\e[0;31m%40s\e[0m" % ["PRICE CHANGE #{Time.now}"]).tr(' ', '=')
         puts html
-        puts ("\e[0;31m%40s\e[0m" % ["ALARM #{Time.now}"]).tr(" ", "=")
+        puts ("\e[0;31m%40s\e[0m" % ["PRICE CHANGE #{Time.now}"]).tr(' ', '=')
 
-        notifyme html
+        # notifyme html
       else
-        print "%s %s: %s %60s\n" % [Time.now.strftime('%H:%m:%S').ljust(20, ' '), ticker[:name].ljust(40, '.'), price_change, ticker[:url]]
+        print ConsoleView.new(ticker[:name], price_diff, ticker[:url])
       end
     else
       puts 'no price for %s' % ticker[:name]
