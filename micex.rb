@@ -19,7 +19,7 @@ module MicexFeed
   def url
     {
       'yesterday' => 'http://www.finam.ru/service.asp?name=leaders&action=grid&leadersmode=0&market=1&pitch=1&sorting.name=price-pchange&sorting.dir=asc&count=-1',
-      'today'     => 'http://www.finam.ru/service.asp?name=leaders&action=grid&market=1&pitch=5&sorting.name=price-pchange&sorting.dir=asc&count=-1',
+      'today'     => 'http://www.finam.ru/service.asp?name=leaders&action=grid&leadersmode=0&market=1&pitch=5&sorting.name=price-pchange&sorting.dir=asc&count=-1',
     }.fetch ENV['WHEN']
   end
 end
@@ -49,7 +49,7 @@ if $0 == __FILE__
     price_diff_match = page.match(/<td class='price-pchange.*?'>([+-]?.+?)<\/td>/)
 
     if price_diff_match
-      price_diff = price_diff_match[1]
+      price_diff = price_diff_match[1].sub(',', '.')
       price_diff_int = price_diff.to_i
 
       if price_diff_int.abs >= ticker[:percentage]
@@ -59,7 +59,7 @@ if $0 == __FILE__
         puts html
         puts ("\e[0;31m%40s\e[0m" % ["PRICE CHANGE #{Time.now}"]).tr(' ', '=')
 
-        # notifyme html
+        notifyme html
       else
         print ConsoleView.new(ticker[:name], price_diff, ticker[:url])
       end
