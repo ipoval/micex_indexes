@@ -43,7 +43,7 @@ if $0 == __FILE__
   fail ArgumentError, 'provide WHEN=yesterday|today environment variable' unless ENV['WHEN']
 
   def micex_run(ticker)
-    # @page.encode! Encoding::UTF_8, invalid: :replace, replace: ''
+    @page.scrub!
 
     page = @page.match(/#{ticker[:profile_id]}.+?(?=<\/tr)/).to_s
     price_diff_match = page.match(/<td class='price-pchange.*?'>([+-]?.+?)<\/td>/)
