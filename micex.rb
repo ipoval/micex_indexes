@@ -27,10 +27,10 @@ end
 ConsoleView = Struct.new(:instrument_name, :price_diff, :instrument_url) do
   def to_s
     format "%s %s: %s %60s\n",
-      Time.now.strftime('%H:%m:%S').ljust(20, ' '),
-      instrument_name.ljust(40, '.'),
-      price_with_color,
-      instrument_url
+           Time.now.strftime('%H:%m:%S').ljust(20, ' '),
+           instrument_name.ljust(40, '.'),
+           price_with_color,
+           instrument_url
   end
 
   def price_with_color
