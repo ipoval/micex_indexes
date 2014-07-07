@@ -6,7 +6,6 @@
 #
 # Start
 # WHEN=today|yesterday ruby ./$0.rb
-#
 
 require 'json'
 require 'open-uri'
